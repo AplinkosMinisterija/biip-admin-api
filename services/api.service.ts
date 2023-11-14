@@ -77,8 +77,7 @@ export interface UserAuthMeta {
           // permissions
           'GET /permissions': 'auth.permissions.list',
           'GET /permissions/:id': 'auth.permissions.get',
-          'GET /permissions/municipalities':
-            'auth.permissions.getMunicipalities',
+          'GET /permissions/municipalities': 'auth.permissions.getMunicipalities',
           'PATCH /permissions/:id': 'auth.permissions.update',
           'POST /permissions': 'auth.permissions.create',
           'DELETE /permissions/:id': 'auth.permissions.remove',
@@ -240,7 +239,7 @@ export default class ApiService extends moleculer.Service {
   @Method
   async rejectAuth(
     ctx: Context<Record<string, unknown>, UserAuthMeta>,
-    error: Errors.MoleculerError
+    error: Errors.MoleculerError,
   ): Promise<unknown> {
     if (ctx.meta.user) {
       const context = pick(
@@ -256,7 +255,7 @@ export default class ApiService extends moleculer.Service {
         'caller',
         'params',
         'meta',
-        'locals'
+        'locals',
       );
       const action = pick(ctx.action, 'rawName', 'name', 'params', 'rest');
       const logInfo = {
@@ -277,7 +276,7 @@ export default class ApiService extends moleculer.Service {
   async authenticate(
     ctx: Context<Record<string, unknown>, UserAuthMeta>,
     route: any,
-    req: RequestMessage
+    req: RequestMessage,
   ): Promise<unknown> {
     if (req.$action.auth === false) {
       return Promise.resolve(null);
@@ -309,28 +308,19 @@ export default class ApiService extends moleculer.Service {
         } catch (e) {
           return this.rejectAuth(
             ctx,
-            new ApiGateway.Errors.UnAuthorizedError(
-              ApiGateway.Errors.ERR_INVALID_TOKEN,
-              null
-            )
+            new ApiGateway.Errors.UnAuthorizedError(ApiGateway.Errors.ERR_INVALID_TOKEN, null),
           );
         }
       }
 
       return this.rejectAuth(
         ctx,
-        new ApiGateway.Errors.UnAuthorizedError(
-          ApiGateway.Errors.ERR_INVALID_TOKEN,
-          null
-        )
+        new ApiGateway.Errors.UnAuthorizedError(ApiGateway.Errors.ERR_INVALID_TOKEN, null),
       );
     }
     return this.rejectAuth(
       ctx,
-      new ApiGateway.Errors.UnAuthorizedError(
-        ApiGateway.Errors.ERR_NO_TOKEN,
-        null
-      )
+      new ApiGateway.Errors.UnAuthorizedError(ApiGateway.Errors.ERR_NO_TOKEN, null),
     );
   }
 
@@ -346,7 +336,7 @@ export default class ApiService extends moleculer.Service {
   async authorize(
     ctx: Context<Record<string, unknown>, UserAuthMeta>,
     route: any,
-    req: RequestMessage
+    req: RequestMessage,
   ): Promise<unknown> {
     const user = ctx.meta.user;
 
@@ -357,10 +347,7 @@ export default class ApiService extends moleculer.Service {
     if (!user) {
       return this.rejectAuth(
         ctx,
-        new ApiGateway.Errors.UnAuthorizedError(
-          ApiGateway.Errors.ERR_NO_TOKEN,
-          null
-        )
+        new ApiGateway.Errors.UnAuthorizedError(ApiGateway.Errors.ERR_NO_TOKEN, null),
       );
     }
 

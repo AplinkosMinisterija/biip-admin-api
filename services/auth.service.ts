@@ -3,7 +3,7 @@
 import moleculer, { Context } from 'moleculer';
 import { Action, Method, Service } from 'moleculer-decorators';
 
-import authMixin from 'biip-auth-nodejs/mixin'
+import authMixin from 'biip-auth-nodejs/mixin';
 import { UserAuthMeta } from './api.service';
 import { BaseModelInterface } from '../types';
 
@@ -21,8 +21,8 @@ export interface User extends BaseModelInterface {
   name: 'auth',
   mixins: [
     authMixin(process.env.AUTH_API_KEY, {
-      host: process.env.AUTH_HOST || 'https://auth.biip.lt'
-    })
+      host: process.env.AUTH_HOST || 'https://auth.biip.lt',
+    }),
   ],
   hooks: {
     before: {
@@ -34,10 +34,9 @@ export interface User extends BaseModelInterface {
     after: {
       'groups.create': 'saveMunicipalitiesIfNeeded',
       'groups.update': 'saveMunicipalitiesIfNeeded',
-    }
-  }
+    },
+  },
 })
-
 export default class AuthService extends moleculer.Service {
   @Action({
     cache: {
@@ -45,44 +44,51 @@ export default class AuthService extends moleculer.Service {
     },
   })
   async me(ctx: Context<{}, UserAuthMeta>) {
-    return ctx.meta.user
+    return ctx.meta.user;
   }
 
   @Method
-  assignAdminAppIfNeeded(ctx: Context<{apps: Array<any>}, UserAuthMeta>) {
-    const {apps} = ctx.params
-    const adminAppId = ctx.meta.app.id
-    if (!apps || !apps.length || !adminAppId) return ctx
+  assignAdminAppIfNeeded(ctx: Context<{ apps: Array<any> }, UserAuthMeta>) {
+    const { apps } = ctx.params;
+    const adminAppId = ctx.meta.app.id;
+    if (!apps || !apps.length || !adminAppId) return ctx;
 
-    const hasAdminApp = apps.some(a => a == adminAppId)
-    if (hasAdminApp) return ctx
+    const hasAdminApp = apps.some((a) => a == adminAppId);
+    if (hasAdminApp) return ctx;
 
-    ctx.params.apps = [...apps, adminAppId]
-    return ctx
+    ctx.params.apps = [...apps, adminAppId];
+    return ctx;
   }
 
   @Method
-  async saveMunicipalitiesIfNeeded(ctx: Context<{ id: number, municipalities: Array<any> }>, data: any) {
-    const {municipalities} = ctx.params
+  async saveMunicipalitiesIfNeeded(
+    ctx: Context<{ id: number; municipalities: Array<any> }>,
+    data: any,
+  ) {
+    const { municipalities } = ctx.params;
 
-    if (!municipalities || !municipalities.length || !data.id) return data
+    if (!municipalities || !municipalities.length || !data.id) return data;
 
-    await this.broker.call('auth.permissions.createWithMunicipalities', {
-      group: data.id,
-      municipalities
-    }, { meta: ctx.meta })
+    await this.broker.call(
+      'auth.permissions.createWithMunicipalities',
+      {
+        group: data.id,
+        municipalities,
+      },
+      { meta: ctx.meta },
+    );
 
-    return data
+    return data;
   }
 
   @Method
   async assignUserTypeIfNeeded(ctx: Context<{ type: string }>) {
-    const {type} = ctx.params
+    const { type } = ctx.params;
 
-    if (type && ['ADMIN', 'SUPER_ADMIN'].includes(type)) return ctx
+    if (type && ['ADMIN', 'SUPER_ADMIN'].includes(type)) return ctx;
 
-    ctx.params.type = 'ADMIN'
+    ctx.params.type = 'ADMIN';
 
-    return ctx
+    return ctx;
   }
 }

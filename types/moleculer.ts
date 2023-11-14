@@ -3,7 +3,6 @@ import { ActionSchema, ActionParamSchema } from 'moleculer';
 import { IncomingMessage } from 'http';
 import { UserAuthMeta } from '../services/api.service';
 
-
 export type FieldHookCallback = {
   ctx: Context<null, UserAuthMeta>;
   value: any;
