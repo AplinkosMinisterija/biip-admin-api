@@ -4,6 +4,13 @@ import moleculer, { Context } from 'moleculer';
 import { Action, Method, Service } from 'moleculer-decorators';
 
 import authMixin from 'biip-auth-nodejs/mixin';
+// The biip-auth-nodejs mixin drops captchaToken in login / remindPassword; both are overridden below.
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const AuthRequest = require('biip-auth-nodejs/src/request');
+const authRequest = new AuthRequest(
+  process.env.AUTH_API_KEY,
+  process.env.AUTH_HOST || 'https://auth.biip.lt',
+);
 import { UserAuthMeta } from './api.service';
 import { BaseModelInterface } from '../types';
 
@@ -38,6 +45,38 @@ export interface User extends BaseModelInterface {
   },
 })
 export default class AuthService extends moleculer.Service {
+  // Pass the admin portal's reCAPTCHA token on to auth-api.
+  @Action({
+    params: {
+      email: 'string',
+      password: 'string',
+      refresh: { type: 'boolean', optional: true },
+      captchaToken: { type: 'string', optional: true },
+    },
+  })
+  login(
+    ctx: Context<{ email: string; password: string; refresh?: boolean; captchaToken?: string }>,
+  ) {
+    const { email, password, refresh, captchaToken } = ctx.params;
+    return authRequest.post('/auth/login', {
+      email,
+      password,
+      refresh: refresh || false,
+      captchaToken,
+    });
+  }
+
+  @Action({
+    params: {
+      email: 'string',
+      captchaToken: { type: 'string', optional: true },
+    },
+  })
+  remindPassword(ctx: Context<{ email: string; captchaToken?: string }>) {
+    const { email, captchaToken } = ctx.params;
+    return authRequest.post('/auth/remind', { email, captchaToken });
+  }
+
   @Action({
     cache: {
       keys: ['#user.id'],

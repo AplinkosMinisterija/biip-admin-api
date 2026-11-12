@@ -141,7 +141,16 @@ export interface UserAuthMeta {
         },
 
         // Mapping policy setting. More info: https://moleculer.services/docs/0.14/moleculer-web.html#Mapping-policy
-        mappingPolicy: 'all', // Available values: "all", "restrict"
+        // Serve declared routes only (aliases and autoAliases built from `rest`).
+        mappingPolicy: 'restrict',
+
+        // Ids are passed on to auth-api in the URL path; accept id characters only.
+        onBeforeCall(_ctx: Context, _route: any, req: RequestMessage) {
+          const id = (req.$params as Record<string, unknown> | undefined)?.id;
+          if (id !== undefined && !/^[A-Za-z0-9_-]+$/.test(String(id))) {
+            throw new Errors.MoleculerClientError('Invalid id', 400, 'INVALID_ID');
+          }
+        },
 
         // Enable/disable logging
         logging: true,
